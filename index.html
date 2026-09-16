@@ -1,0 +1,944 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2F6F5E">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<title>פחמימה — יומן ומחשבון אישי</title>
+<style>
+  :root{
+    --bg:#F1F4F0;
+    --surface:#FFFFFF;
+    --ink:#1E2A22;
+    --muted:#5B6B61;
+    --line:#D9E0D6;
+    --accent:#2F6F5E;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#E4EEE9;
+    --warn-bg:#FBEAE2;
+    --warn-ink:#7A2E17;
+    --warn-line:#E7B7A0;
+    --danger:#A8442B;
+    --danger-soft:#F6E4DE;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Arial,"Helvetica Neue",sans-serif;
+    line-height:1.5;
+    padding-bottom:48px;
+  }
+  header{
+    display:flex;align-items:center;gap:14px;
+    padding:22px 20px 18px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+  }
+  .mark{
+    width:44px;height:44px;border-radius:10px;
+    background:var(--accent);color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;font-weight:600;flex:none;
+  }
+  header h1{margin:0;font-size:19px;font-weight:700;letter-spacing:-0.01em;}
+  header p{margin:2px 0 0;font-size:13px;color:var(--muted);}
+
+  .flag{
+    margin:16px 20px 0;
+    background:var(--warn-bg);
+    border:1px solid var(--warn-line);
+    color:var(--warn-ink);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:13.5px;
+  }
+  .flag strong{display:block;margin-bottom:4px;font-size:14px;}
+
+  nav{
+    display:flex;gap:4px;
+    margin:18px 20px 0;
+    border-bottom:1px solid var(--line);
+  }
+  nav button{
+    appearance:none;border:none;background:none;
+    font:inherit;font-size:14.5px;color:var(--muted);
+    padding:10px 6px;margin-left:14px;
+    border-bottom:2px solid transparent;
+    cursor:pointer;
+  }
+  nav button.active{color:var(--ink);border-bottom-color:var(--accent);font-weight:600;}
+
+  main{max-width:640px;margin:0 auto;padding:0 20px;}
+  section{padding-top:22px;}
+  .eyebrow{margin:0;font-size:12.5px;color:var(--muted);}
+  h2{margin:2px 0 16px;font-size:20px;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;}
+  input,select{
+    width:100%;padding:10px 11px;font:inherit;font-size:15px;
+    border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);
+  }
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+  .row{display:flex;gap:12px;}
+  .row > div{flex:1;}
+  .field{margin-bottom:14px;}
+
+  button{
+    font:inherit;font-size:14.5px;cursor:pointer;
+    border-radius:8px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink);
+    padding:11px 16px;
+  }
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600;}
+  button.secondary{width:100%;margin-bottom:10px;}
+  button.danger-outline{border-color:var(--danger);color:var(--danger);background:none;}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+
+  .check{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;color:var(--ink);margin:14px 0;}
+  .check input{width:auto;margin-top:3px;}
+
+  .item-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px;
+  }
+  .item-row:last-child{border-bottom:none;}
+  .item-row button{padding:4px 9px;font-size:12.5px;}
+
+  .total-bar{
+    display:flex;justify-content:space-between;
+    background:var(--accent-soft);border-radius:10px;
+    padding:14px 16px;margin-bottom:16px;font-size:14px;
+  }
+  .total-bar strong{display:block;font-size:20px;margin-top:2px;}
+  .total-bar small{font-weight:400;font-size:12px;color:var(--muted);}
+
+  .result{margin-top:14px;padding:14px;border-radius:10px;font-size:14px;}
+  .result.ok{background:var(--accent-soft);}
+  .result.blocked,.result.hold{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line);}
+  .result dl{margin:8px 0 0;display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:13.5px;}
+  .result dt{color:var(--muted);}
+  .result .grand{font-size:22px;font-weight:700;margin-top:10px;}
+
+  .muted{color:var(--muted);font-size:13px;}
+  dl.settings{margin:0;}
+  dl.settings > div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;}
+  dl.settings > div:last-child{border-bottom:none;}
+  dl.settings dt{color:var(--muted);}
+  dl.settings dd{margin:0;text-align:left;font-weight:600;}
+
+  .journal-entry{border-bottom:1px solid var(--line);padding:12px 0;font-size:13.5px;}
+  .journal-entry:last-child{border-bottom:none;}
+  .journal-entry .when{color:var(--muted);font-size:12px;}
+  .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:100px;margin-inline-end:6px;}
+  .tag.meal{background:var(--accent-soft);color:var(--accent);}
+  .tag.injection{background:#EDE7F6;color:#4B3B7A;}
+
+  .toast{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:100px;
+    font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .toast.show{opacity:1;}
+  [hidden]{display:none !important;}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="mark">פ</span>
+  <div>
+    <h1>פחמימה</h1>
+    <p>יומן ארוחות, סוכר והזרקות — לשימוש אישי</p>
+  </div>
+</header>
+
+<div class="flag">
+  <strong>לפני שימוש בפועל</strong>
+  האפליקציה מבצעת אך ורק את החישוב האריתמטי לפי הערכים שהזנת — היא אינה שוקלת אינסולין פעיל בפועל, אינה מודל קליני, ואינה תחליף לשיקול דעת רפואי. יש לבדוק כל תוצאה בעצמך לפני הזרקה, ולעדכן את הצוות המטפל אם משהו בהגדרות משתנה.
+</div>
+
+<nav>
+  <button data-tab="meal" class="active">ארוחה</button>
+  <button data-tab="foods">מזונות</button>
+  <button data-tab="journal">יומן</button>
+  <button data-tab="settings">הגדרות</button>
+</nav>
+
+<main>
+
+<!-- MEAL -->
+<section id="tab-meal">
+  <p class="eyebrow">מתחילים בצלחת</p>
+  <h2>מה אכלת?</h2>
+
+  <div class="card">
+    <div class="field">
+      <label for="food-quicksearch">חיפוש מזון להוספה</label>
+      <input id="food-quicksearch" type="search" placeholder="הקלד/י כדי לסנן, למשל: לחם">
+    </div>
+    <div class="field">
+      <label for="food-select">מזון מהמאגר</label>
+      <select id="food-select"></select>
+    </div>
+    <div class="field">
+      <label for="unit-mode">כמות לפי</label>
+      <select id="unit-mode"></select>
+    </div>
+    <div class="row">
+      <div class="field" id="grams-field">
+        <label for="weight">משקל אכיל בגרמים</label>
+        <input id="weight" type="number" min="0.1" max="3000" step="0.1" placeholder="למשל 100" inputmode="decimal">
+      </div>
+      <div class="field" id="qty-field" hidden>
+        <label for="qty" id="qty-label">כמות</label>
+        <input id="qty" type="number" min="0.25" max="50" step="0.25" value="1" inputmode="decimal">
+      </div>
+    </div>
+    <button class="primary" id="add-item" style="width:100%;">הוספה לארוחה</button>
+    <p class="muted" style="margin-bottom:0;margin-top:10px;">אפשר להוסיף כמה מזונות שרוצים לארוחה אחת — לבחור מזון נוסף וללחוץ שוב על ״הוספה לארוחה״, כל עוד לא נשמרה הארוחה. יש לשקול את החלק הנאכל בפועל.</p>
+  </div>
+
+  <div id="meal-items"></div>
+
+  <div class="total-bar">
+    <div><span class="muted">פחמימות בארוחה</span><strong id="carb-total">0 <small>גרם</small></strong></div>
+    <div><span class="muted">מנות של 15 גרם</span><strong id="portion-total">0</strong></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">המדידה האחרונה</h3>
+    <div class="row">
+      <div class="field">
+        <label for="glucose">סוכר · מ״ג/ד״ל</label>
+        <input id="glucose" type="number" inputmode="numeric" placeholder="רמת הסוכר">
+      </div>
+      <div class="field">
+        <label for="measured">שעת המדידה</label>
+        <input id="measured" type="datetime-local">
+      </div>
+    </div>
+    <p class="muted">הזנה ידנית מתוך Libre 2. אין חיבור אוטומטי לחיישן בגרסה זו.</p>
+    <label class="check"><input id="history-confirmed" type="checkbox"> תיעדתי ביומן את כל ההזרקות האחרונות שלי</label>
+    <button class="primary" id="simulate" style="width:100%;" disabled>חישוב הצעת מינון להדמיה</button>
+    <div id="result"></div>
+  </div>
+
+  <button class="secondary" id="save-meal">שמירת הארוחה ביומן</button>
+  <button class="secondary danger-outline" id="new-meal">התחלת ארוחה חדשה</button>
+</section>
+
+<!-- FOODS -->
+<section id="tab-foods" hidden>
+  <p class="eyebrow">המאגר האישי</p>
+  <h2>מזונות וכמויות</h2>
+  <p class="muted">מאגר פתיחה עם ערכים כלליים ומקורביים בלבד. יש לאמת כל פריט מול תווית המוצר בפועל לפני שימוש בחישוב.</p>
+
+  <div class="field">
+    <label for="search">חיפוש במאגר</label>
+    <input id="search" type="search" placeholder="חיפוש מזון">
+  </div>
+  <div id="food-list" class="card"></div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">הוספת מזון מתווית</h3>
+    <form id="food-form">
+      <div class="field">
+        <label for="food-name">שם, מותג ומצב המזון</label>
+        <input id="food-name" required maxlength="100" placeholder="למשל: לחם מלא — שם המוצר">
+      </div>
+      <div class="field">
+        <label for="food-category">קטגוריה</label>
+        <select id="food-category"></select>
+      </div>
+      <div class="field">
+        <label for="food-carbs">פחמימות ל־100 גרם לפי התווית</label>
+        <input id="food-carbs" type="number" min="0" max="100" step="0.01" required inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="food-source">מקור הנתונים</label>
+        <input id="food-source" required maxlength="250" placeholder="תווית המוצר ותאריך הבדיקה">
+      </div>
+      <div class="field">
+        <label>מידות נפוצות (לא חובה) — למשל פרוסה, פיתה, לחמניה</label>
+        <div id="servings-rows"></div>
+        <button type="button" id="add-serving-row" style="margin-top:4px;">+ הוספת מידה</button>
+      </div>
+      <button class="primary" type="submit" style="width:100%;">שמירת מזון</button>
+    </form>
+  </div>
+</section>
+
+<!-- JOURNAL -->
+<section id="tab-journal" hidden>
+  <p class="eyebrow">רק מה שבוצע בפועל</p>
+  <h2>יומן אישי</h2>
+  <p class="muted">חישוב הדמיה אינו נרשם כהזרקה. אפשר לתעד כאן הזרקה גם בלי לחשב ארוחה.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0;">האם בוצעה הזרקה?</h3>
+    <form id="injection-form">
+      <div class="field">
+        <label for="units">מספר יחידות שהוזרקו בפועל</label>
+        <input id="units" required type="number" min="1" max="100" step="1" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label for="injected-at">מועד ההזרקה בפועל</label>
+        <input id="injected-at" required type="datetime-local">
+      </div>
+      <label class="check"><input id="injection-confirm" required type="checkbox"> כן, ההזרקה כבר בוצעה, והכמות והשעה נכונות</label>
+      <button class="primary" type="submit" style="width:100%;">אישור ותיעוד הזרקה</button>
+    </form>
+  </div>
+
+  <div id="journal-list" class="card"></div>
+</section>
+
+<!-- SETTINGS -->
+<section id="tab-settings" hidden>
+  <p class="eyebrow">הפרופיל שמסרת</p>
+  <h2>הגדרות טיפול לתיעוד</h2>
+
+  <div class="card">
+    <dl class="settings" id="settings-list"></dl>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">עריכת ההגדרות</h3>
+    <p class="muted">לשינוי רק לפי הנחיה מפורשת מהצוות המטפל.</p>
+    <form id="settings-form">
+      <div class="field"><label for="s-insulin">שם האינסולין</label><input id="s-insulin"></div>
+      <div class="field"><label for="s-pen">ריכוז העט</label><input id="s-pen"></div>
+      <div class="row">
+        <div class="field"><label for="s-carbunit">גרם פחמימה למנה</label><input id="s-carbunit" type="number" step="0.1"></div>
+        <div class="field"><label for="s-mealratio">יחידות אינסולין למנת פחמימה</label><input id="s-mealratio" type="number" step="0.1"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="s-corrfactor">מ״ג/ד״ל לירידה ליחידת תיקון</label><input id="s-corrfactor" type="number" step="1"></div>
+        <div class="field"><label for="s-corrthresh">סף תחילת תיקון</label><input id="s-corrthresh" type="number" step="1"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="s-target">יעד תיקון</label><input id="s-target" type="number" step="1"></div>
+        <div class="field"><label for="s-interval">שעות המתנה בין תיקונים</label><input id="s-interval" type="number" step="0.5"></div>
+      </div>
+      <button class="primary" type="submit" style="width:100%;">שמירת הגדרות</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">מה עדיין נדרש</h3>
+    <p class="muted">אימות קליני של מנגנון החישוב, התנהגות בסוכר חריג, פעילות גופנית, ומנות חוזרות. אין כאן אמדן של אינסולין פעיל בפועל — רק בדיקת זמן מההזרקה האחרונה שתועדה. בסוכר מתחת ל־70 אין הצעת חישוב כלל, מכיוון שהמצב דורש טיפול בהיפוגליקמיה ולא אינסולין. בסוכר 250 ומעלה מוצג חישוב לפי אותה נוסחה, יחד עם תזכורת לבדוק קטונים וליצור קשר עם הצוות המטפל.</p>
+    <p class="muted" style="margin-bottom:0;">הנתונים נשמרים באחסון האישי שלך בלבד. אין חשבון, אין גיבוי ענן, ואין הצפנה ייעודית ברמת האפליקציה בגרסה זו.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>פחמימה · גרסת אב־טיפוס · אינה תחליף לייעוץ רפואי</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  const DEFAULT_SETTINGS = {
+    insulinName: "Lyumjev (לספרו-אאבק)",
+    penConcentration: "U-100",
+    carbUnitGrams: 15,
+    mealRatio: 2.5,
+    correctionFactor: 25,
+    correctionThreshold: 180,
+    correctionTarget: 100,
+    minIntervalHours: 2,
+    sensor: "Libre 2, ישראל — הזנה ידנית"
+  };
+
+  // carbs100 = carbs per 100g EXCLUDING fiber (net), used for all calculations —
+  // this matches how the source table itself derived its per-unit/per-portion figures.
+  // carbsFiber = carbs per 100g INCLUDING fiber, kept only as reference info, not used in calc.
+  const STARTER_FOODS = [
+    // ירקות
+    {id:"v1", name:"אבוקדו", category:"ירקות", carbs100:1.8, carbsFiber:8.5, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית (ללא גרעין וקליפה)", grams:130}]},
+    {id:"v2", name:"בטטה", category:"ירקות", carbs100:15.2, carbsFiber:17.7, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:280}]},
+    {id:"v3", name:"במיה", category:"ירקות", carbs100:4, carbsFiber:7, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:108}]},
+    {id:"v4", name:"בצל", category:"ירקות", carbs100:7.64, carbsFiber:9.34, source:"טבלת ערכים תזונתיים", servings:[{label:"בצל בינוני", grams:130}, {label:"בצל קטן", grams:60}]},
+    {id:"v5", name:"בצל ירוק", category:"ירקות", carbs100:4.74, carbsFiber:7.34, source:"טבלת ערכים תזונתיים", servings:[{label:"גבעול", grams:25}]},
+    {id:"v6", name:"גזר", category:"ירקות", carbs100:6.8, carbsFiber:9.6, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:100}]},
+    {id:"v7", name:"גמבה אדומה", category:"ירקות", carbs100:4, carbsFiber:6, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:155}]},
+    {id:"v8", name:"דלעת", category:"ירקות", carbs100:6, carbsFiber:6.5, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס קוביות", grams:120}]},
+    {id:"v9", name:"חסה", category:"ירקות", carbs100:1.3, carbsFiber:3.3, source:"טבלת ערכים תזונתיים", servings:[{label:"עלה", grams:13}]},
+    {id:"v10", name:"מלפפון", category:"ירקות", carbs100:3, carbsFiber:3.6, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:100}]},
+    {id:"v11", name:"עגבניה", category:"ירקות", carbs100:3, carbsFiber:4, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:117}]},
+    {id:"v12", name:"עגבניית שרי", category:"ירקות", carbs100:2.7, carbsFiber:3.9, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה", grams:17}]},
+    {id:"v13", name:"פטריות שמפיניון", category:"ירקות", carbs100:2.3, carbsFiber:3.3, source:"טבלת ערכים תזונתיים", servings:[{label:"פטרייה", grams:20}]},
+    {id:"v14", name:"קולורבי", category:"ירקות", carbs100:2.4, carbsFiber:6, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:280}, {label:"חצי קטן", grams:115}]},
+    {id:"v15", name:"קישוא", category:"ירקות", carbs100:2.2, carbsFiber:3.3, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:220}]},
+    {id:"v16", name:"שן שום", category:"ירקות", carbs100:31, carbsFiber:33, source:"טבלת ערכים תזונתיים", servings:[{label:"שן שום", grams:5}]},
+    {id:"v17", name:"תפוח אדמה", category:"ירקות", carbs100:19, carbsFiber:21, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:170}]},
+
+    // פירות
+    {id:"r1", name:"אבטיח", category:"פירות", carbs100:7.15, carbsFiber:7.55, source:"טבלת ערכים תזונתיים", servings:[{label:"פלח בינוני", grams:260}]},
+    {id:"r2", name:"אגס", category:"פירות", carbs100:12.4, carbsFiber:15.5, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:170}]},
+    {id:"r3", name:"אוכמניות", category:"פירות", carbs100:12, carbsFiber:14.5, source:"טבלת ערכים תזונתיים", servings:[{label:"מארז קטן", grams:125}]},
+    {id:"r4", name:"אפרסמון", category:"פירות", carbs100:15, carbsFiber:18.6, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:150}]},
+    {id:"r5", name:"אפרסק", category:"פירות", carbs100:8.6, carbsFiber:10.1, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:150}]},
+    {id:"r6", name:"בננה", category:"פירות", carbs100:20, carbsFiber:22.8, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:118}]},
+    {id:"r7", name:"מלון", category:"פירות", carbs100:7.26, carbsFiber:8.16, source:"טבלת ערכים תזונתיים", servings:[{label:"פלח בינוני", grams:160}]},
+    {id:"r8", name:"מנגו", category:"פירות", carbs100:13.4, carbsFiber:15, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית (ללא גלעין וקליפה)", grams:340}]},
+    {id:"r9", name:"נקטרינה", category:"פירות", carbs100:9, carbsFiber:10.5, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:150}]},
+    {id:"r10", name:"פטל", category:"פירות", carbs100:5.4, carbsFiber:11.9, source:"טבלת ערכים תזונתיים", servings:[{label:"מארז קטן", grams:100}]},
+    {id:"r11", name:"קיווי", category:"פירות", carbs100:11.5, carbsFiber:14.9, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:60}]},
+    {id:"r12", name:"שזיף", category:"פירות", carbs100:10, carbsFiber:11.4, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:85}]},
+    {id:"r13", name:"תות", category:"פירות", carbs100:5.8, carbsFiber:7.6, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה", grams:15}]},
+    {id:"r14", name:"תמר מג'הול", category:"פירות", carbs100:68, carbsFiber:75, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה", grams:20}]},
+    {id:"r15", name:"תפוז", category:"פירות", carbs100:9.6, carbsFiber:11.8, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:150}]},
+    {id:"r16", name:"מיץ תפוזים טבעי", category:"פירות", carbs100:10, carbsFiber:10.2, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:200}]},
+    {id:"r17", name:"תפוח", category:"פירות", carbs100:12.7, carbsFiber:14.8, source:"טבלת ערכים תזונתיים", servings:[{label:"יחידה בינונית", grams:150}]},
+
+    // דגנים ומאפים
+    {id:"g1", name:"אורז לבן, מבושל", category:"דגנים ומאפים", carbs100:27, carbsFiber:28, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:200}]},
+    {id:"g2", name:"אורז מלא, מבושל", category:"דגנים ומאפים", carbs100:25, carbsFiber:28, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:200}]},
+    {id:"g3", name:"בורגול, מבושל", category:"דגנים ומאפים", carbs100:14, carbsFiber:18.6, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:190}]},
+    {id:"g4", name:"כוסמת, מבושלת", category:"דגנים ומאפים", carbs100:17.3, carbsFiber:20, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:170}]},
+    {id:"g5", name:"לחם לבן", category:"דגנים ומאפים", carbs100:49, carbsFiber:52, source:"טבלת ערכים תזונתיים", servings:[{label:"פרוסה", grams:28}]},
+    {id:"g6", name:"לחם מלא", category:"דגנים ומאפים", carbs100:34, carbsFiber:43, source:"טבלת ערכים תזונתיים", servings:[{label:"פרוסה", grams:30}]},
+    {id:"g7", name:"לחם קל", category:"דגנים ומאפים", carbs100:27, carbsFiber:38, source:"טבלת ערכים תזונתיים", servings:[{label:"פרוסה", grams:28}]},
+    {id:"g8", name:"עוגיה (קנויה)", category:"דגנים ומאפים", carbs100:63, carbsFiber:65, source:"טבלת ערכים תזונתיים", servings:[{label:"עוגייה בינונית", grams:12.5}]},
+    {id:"g9", name:"פופקורן (מוכן עם שמן)", category:"דגנים ומאפים", carbs100:50, carbsFiber:60, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:11}]},
+    {id:"g10", name:"פיתה", category:"דגנים ומאפים", carbs100:54, carbsFiber:56, source:"טבלת ערכים תזונתיים", servings:[{label:"פיתה", grams:100}]},
+    {id:"g11", name:"פסטה, מבושלת", category:"דגנים ומאפים", carbs100:28.8, carbsFiber:30.6, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:105}]},
+    {id:"g12", name:"פריכית אורז", category:"דגנים ומאפים", carbs100:79, carbsFiber:82, source:"טבלת ערכים תזונתיים", servings:[{label:"פריכית", grams:8}]},
+    {id:"g13", name:"קורנפלקס (תירס)", category:"דגנים ומאפים", carbs100:83.3, carbsFiber:86.3, source:"טבלת ערכים תזונתיים", servings:[{label:"קערית", grams:60}]},
+    {id:"g14", name:"קרקר", category:"דגנים ומאפים", carbs100:64, carbsFiber:70, source:"טבלת ערכים תזונתיים", servings:[{label:"קרקר", grams:5}]},
+    {id:"g15", name:"לחמניה", category:"דגנים ומאפים", carbs100:50, carbsFiber:53, source:"ערך כללי — יש לאמת מול התווית בפועל", servings:[{label:"לחמניה בינונית", grams:60}]},
+    {id:"g16", name:"בגט", category:"דגנים ומאפים", carbs100:55, carbsFiber:57, source:"ערך כללי — יש לאמת מול התווית בפועל", servings:[{label:"פרוסה (כ-2 ס״מ)", grams:30}, {label:"חצי בגט", grams:125}]},
+
+    // שונות
+    {id:"m1", name:"אגוז מלך", category:"שונות", carbs100:7, carbsFiber:13.7, source:"טבלת ערכים תזונתיים", servings:[{label:"חצי אגוז", grams:2}]},
+    {id:"m2", name:"אפונה", category:"שונות", carbs100:14, carbsFiber:15.6, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:150}]},
+    {id:"m3", name:"בירה", category:"שונות", carbs100:3.6, carbsFiber:3.6, source:"טבלת ערכים תזונתיים", servings:[{label:"בקבוק", grams:330}]},
+    {id:"m4", name:"דבש", category:"שונות", carbs100:81.8, carbsFiber:82, source:"טבלת ערכים תזונתיים", servings:[{label:"כפית", grams:9}]},
+    {id:"m5", name:"חומוס גרגרים, מבושל", category:"שונות", carbs100:19.8, carbsFiber:27.4, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס מבושל", grams:160}]},
+    {id:"m6", name:"חומוס ממרח", category:"שונות", carbs100:8, carbsFiber:14, source:"טבלת ערכים תזונתיים", servings:[{label:"כף", grams:30}]},
+    {id:"m7", name:"חלב", category:"שונות", carbs100:5, carbsFiber:5, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:200}]},
+    {id:"m8", name:"טחינה גולמית", category:"שונות", carbs100:4.3, carbsFiber:16, source:"טבלת ערכים תזונתיים", servings:[{label:"כף", grams:15}]},
+    {id:"m9", name:"יוגורט", category:"שונות", carbs100:4.5, carbsFiber:4.5, source:"טבלת ערכים תזונתיים", servings:[{label:"גביע", grams:200}]},
+    {id:"m10", name:"יין אדום / לבן יבש", category:"שונות", carbs100:2.5, carbsFiber:2.5, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:200}]},
+    {id:"m11", name:"מייפל", category:"שונות", carbs100:67, carbsFiber:67, source:"טבלת ערכים תזונתיים", servings:[{label:"כפית", grams:6}]},
+    {id:"m12", name:"סוכר לבן", category:"שונות", carbs100:100, carbsFiber:100, source:"טבלת ערכים תזונתיים", servings:[{label:"כפית שטוחה", grams:5}]},
+    {id:"m13", name:"עדשים, מבושלות", category:"שונות", carbs100:12.2, carbsFiber:20.1, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס מבושל", grams:214}]},
+    {id:"m14", name:"שעועית אדומה", category:"שונות", carbs100:16.4, carbsFiber:22.8, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:180}]},
+    {id:"m15", name:"שעועית לבנה", category:"שונות", carbs100:18.7, carbsFiber:25, source:"טבלת ערכים תזונתיים", servings:[{label:"כוס", grams:180}]},
+    {id:"m16", name:"שקדים", category:"שונות", carbs100:9.5, carbsFiber:21.7, source:"טבלת ערכים תזונתיים", servings:[{label:"שקד", grams:1}]}
+  ];
+  const CATEGORIES = ["ירקות","פירות","דגנים ומאפים","שונות"];
+
+  let settings = {...DEFAULT_SETTINGS};
+  let foods = [];
+  let meals = [];
+  let injections = [];
+  let currentMealItems = [];
+  let lastCalc = null;
+
+  async function storeGet(key, fallback){
+    try{
+      const raw = localStorage.getItem("carbnote:"+key);
+      return raw !== null ? JSON.parse(raw) : fallback;
+    }catch(e){ return fallback; }
+  }
+  async function storeSet(key, value){
+    try{ localStorage.setItem("carbnote:"+key, JSON.stringify(value)); }
+    catch(e){ console.error("storage error", key, e); }
+  }
+
+  function toast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 2200);
+  }
+
+  function fmt(n, digits){
+    if (digits === undefined) digits = 1;
+    return (Math.round(n*Math.pow(10,digits))/Math.pow(10,digits)).toString();
+  }
+
+  function nowLocalInputValue(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    return d.toISOString().slice(0,16);
+  }
+
+  // ---------- TABS ----------
+  document.querySelectorAll("nav button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      document.querySelectorAll("main > section").forEach(s=>s.hidden = true);
+      document.getElementById("tab-"+btn.dataset.tab).hidden = false;
+    });
+  });
+
+  // ---------- FOODS ----------
+  function renderFoodSelect(){
+    const sel = document.getElementById("food-select");
+    const prev = sel.value;
+    const q = document.getElementById("food-quicksearch").value.trim().toLowerCase();
+    sel.innerHTML = "";
+
+    CATEGORIES.forEach(cat=>{
+      const inCat = foods.filter(f=>(f.category||"שונות") === cat && f.name.toLowerCase().includes(q));
+      if (inCat.length === 0) return;
+      const grp = document.createElement("optgroup");
+      grp.label = cat;
+      inCat.forEach(f=>{
+        const opt = document.createElement("option");
+        opt.value = f.id;
+        opt.textContent = f.name + " · " + fmt(f.carbs100) + " ג׳ פחמ׳ / 100 ג׳";
+        grp.appendChild(opt);
+      });
+      sel.appendChild(grp);
+    });
+
+    if (prev && foods.some(f=>f.id===prev && f.name.toLowerCase().includes(q))) sel.value = prev;
+    renderUnitMode();
+  }
+  document.getElementById("food-quicksearch").addEventListener("input", renderFoodSelect);
+
+  function renderUnitMode(){
+    const foodId = document.getElementById("food-select").value;
+    const food = foods.find(f=>f.id === foodId);
+    const modeSel = document.getElementById("unit-mode");
+    modeSel.innerHTML = "";
+    const gramsOpt = document.createElement("option");
+    gramsOpt.value = "grams";
+    gramsOpt.textContent = "משקל חופשי (גרם)";
+    modeSel.appendChild(gramsOpt);
+    if (food && food.servings && food.servings.length){
+      food.servings.forEach((s, idx)=>{
+        const opt = document.createElement("option");
+        opt.value = "serving:" + idx;
+        opt.textContent = s.label + " (≈" + fmt(s.grams) + " ג׳)";
+        modeSel.appendChild(opt);
+      });
+    }
+    updateAmountFields();
+  }
+
+  function updateAmountFields(){
+    const mode = document.getElementById("unit-mode").value;
+    const gramsField = document.getElementById("grams-field");
+    const qtyField = document.getElementById("qty-field");
+    if (mode === "grams"){
+      gramsField.hidden = false;
+      qtyField.hidden = true;
+    } else {
+      gramsField.hidden = true;
+      qtyField.hidden = false;
+      const foodId = document.getElementById("food-select").value;
+      const food = foods.find(f=>f.id === foodId);
+      const idx = parseInt(mode.split(":")[1], 10);
+      const serving = food && food.servings[idx];
+      document.getElementById("qty-label").textContent = "כמות (" + (serving ? serving.label : "יחידות") + ")";
+    }
+  }
+
+  document.getElementById("food-select").addEventListener("change", renderUnitMode);
+  document.getElementById("unit-mode").addEventListener("change", updateAmountFields);
+
+  function renderFoodList(){
+    const q = document.getElementById("search").value.trim().toLowerCase();
+    const list = document.getElementById("food-list");
+    list.innerHTML = "";
+    const filtered = foods.filter(f=>f.name.toLowerCase().includes(q));
+    if (filtered.length === 0){
+      list.innerHTML = '<p class="muted">לא נמצאו מזונות תואמים.</p>';
+      return;
+    }
+    const groups = {};
+    filtered.forEach(f=>{
+      const cat = f.category || "שונות";
+      (groups[cat] = groups[cat] || []).push(f);
+    });
+    const order = CATEGORIES.filter(c=>groups[c]);
+    Object.keys(groups).forEach(c=>{ if (!order.includes(c)) order.push(c); });
+
+    order.forEach(cat=>{
+      const h = document.createElement("h3");
+      h.style.fontSize = "14px";
+      h.style.margin = "14px 0 4px";
+      h.textContent = cat;
+      list.appendChild(h);
+      groups[cat].forEach(f=>{
+        const row = document.createElement("div");
+        row.className = "item-row";
+        const carbsLine = "ל-100 ג׳: " + fmt(f.carbs100) + " ג׳ (ללא סיבים)" + (f.carbsFiber !== undefined ? " · " + fmt(f.carbsFiber) + " ג׳ (כולל סיבים)" : "");
+        const servingsTxt = (f.servings && f.servings.length)
+          ? f.servings.map(s=>`${escapeHtml(s.label)} (${fmt(s.grams)} ג׳) ≈ ${fmt(s.grams*f.carbs100/100)} ג׳ פחמ׳`).join(" · ")
+          : "";
+        row.innerHTML = `<span>${escapeHtml(f.name)}<br><span class="muted">${carbsLine}${escapeHtml(f.source ? " · " + f.source : "")}</span>${servingsTxt ? `<br><span class="muted">${servingsTxt}</span>` : ""}</span>`;
+        list.appendChild(row);
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  document.getElementById("search").addEventListener("input", renderFoodList);
+
+  function addServingRow(label, grams){
+    const wrap = document.getElementById("servings-rows");
+    const row = document.createElement("div");
+    row.className = "row serving-row";
+    row.style.marginBottom = "8px";
+    row.innerHTML = `
+      <div class="field" style="margin-bottom:0;"><input class="serving-label" placeholder="שם המידה, למשל פרוסה" value="${escapeHtml(label||"")}"></div>
+      <div class="field" style="margin-bottom:0;max-width:110px;"><input class="serving-grams" type="number" min="1" step="1" placeholder="גרם למידה" value="${grams||""}"></div>
+      <button type="button" class="remove-serving" style="flex:none;padding:8px 10px;">הסרה</button>
+    `;
+    row.querySelector(".remove-serving").addEventListener("click", ()=>row.remove());
+    wrap.appendChild(row);
+  }
+  document.getElementById("add-serving-row").addEventListener("click", ()=>addServingRow());
+
+  function populateCategorySelect(){
+    const sel = document.getElementById("food-category");
+    sel.innerHTML = "";
+    CATEGORIES.forEach(c=>{
+      const opt = document.createElement("option");
+      opt.value = c; opt.textContent = c;
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById("food-form").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const name = document.getElementById("food-name").value.trim();
+    const category = document.getElementById("food-category").value;
+    const carbs100 = parseFloat(document.getElementById("food-carbs").value);
+    const source = document.getElementById("food-source").value.trim();
+    if (!name || isNaN(carbs100) || !source) return;
+    const servings = [];
+    document.querySelectorAll("#servings-rows .serving-row").forEach(row=>{
+      const label = row.querySelector(".serving-label").value.trim();
+      const grams = parseFloat(row.querySelector(".serving-grams").value);
+      if (label && !isNaN(grams) && grams > 0) servings.push({label, grams});
+    });
+    foods.push({id:"f"+Date.now(), name, category, carbs100, source, servings});
+    await storeSet("foods", foods);
+    renderFoodSelect();
+    renderFoodList();
+    e.target.reset();
+    populateCategorySelect();
+    document.getElementById("servings-rows").innerHTML = "";
+    toast("המזון נשמר במאגר");
+  });
+
+  // ---------- MEAL BUILDING ----------
+  function renderMealItems(){
+    const wrap = document.getElementById("meal-items");
+    wrap.innerHTML = "";
+    let totalCarbs = 0;
+    currentMealItems.forEach((it, idx)=>{
+      totalCarbs += it.carbs;
+      const row = document.createElement("div");
+      row.className = "item-row";
+      const line1 = it.detail ? (it.name + " · " + it.detail) : (it.name + " · " + fmt(it.grams) + " ג׳");
+      row.innerHTML = `<span>${escapeHtml(line1)}<br><span class="muted">${fmt(it.carbs)} ג׳ פחמ׳</span></span>`;
+      const btn = document.createElement("button");
+      btn.textContent = "הסרה";
+      btn.addEventListener("click", ()=>{
+        currentMealItems.splice(idx,1);
+        renderMealItems();
+      });
+      row.appendChild(btn);
+      wrap.appendChild(row);
+    });
+    document.getElementById("carb-total").innerHTML = fmt(totalCarbs) + " <small>גרם</small>";
+    document.getElementById("portion-total").textContent = fmt(totalCarbs / settings.carbUnitGrams, 2);
+    updateSimulateEnabled();
+  }
+
+  document.getElementById("add-item").addEventListener("click", ()=>{
+    const sel = document.getElementById("food-select");
+    const food = foods.find(f=>f.id === sel.value);
+    if (!sel.value || !food) { toast("יש לבחור מזון"); return; }
+
+    const mode = document.getElementById("unit-mode").value;
+    let grams, detail;
+
+    if (mode === "grams"){
+      grams = parseFloat(document.getElementById("weight").value);
+      if (isNaN(grams) || grams <= 0) { toast("יש להזין משקל תקין"); return; }
+      detail = "";
+    } else {
+      const idx = parseInt(mode.split(":")[1], 10);
+      const serving = food.servings[idx];
+      const qty = parseFloat(document.getElementById("qty").value);
+      if (!serving || isNaN(qty) || qty <= 0) { toast("יש להזין כמות תקינה"); return; }
+      grams = serving.grams * qty;
+      detail = fmt(qty,2) + " × " + serving.label + " (≈" + fmt(grams) + " ג׳)";
+    }
+
+    const carbs = grams * food.carbs100 / 100;
+    currentMealItems.push({name: food.name, grams, carbs, detail});
+    document.getElementById("weight").value = "";
+    document.getElementById("qty").value = "1";
+    renderMealItems();
+  });
+
+  document.getElementById("new-meal").addEventListener("click", ()=>{
+    currentMealItems = [];
+    lastCalc = null;
+    document.getElementById("glucose").value = "";
+    document.getElementById("history-confirmed").checked = false;
+    document.getElementById("measured").value = nowLocalInputValue();
+    document.getElementById("result").innerHTML = "";
+    renderMealItems();
+  });
+
+  document.getElementById("history-confirmed").addEventListener("change", updateSimulateEnabled);
+  function updateSimulateEnabled(){
+    const confirmed = document.getElementById("history-confirmed").checked;
+    document.getElementById("simulate").disabled = !confirmed;
+  }
+
+  // ---------- CALCULATION ----------
+  function lastInjectionBefore(nowMs){
+    let latest = null;
+    injections.forEach(inj=>{
+      const t = new Date(inj.injectedAt).getTime();
+      if (t <= nowMs && (!latest || t > latest)) latest = t;
+    });
+    return latest;
+  }
+
+  function calcDose(carbGrams, glucose, atMs){
+    const mealUnits = carbGrams / settings.carbUnitGrams;
+    const mealInsulin = mealUnits * settings.mealRatio;
+
+    if (glucose < 70){
+      return {status:"hypo"};
+    }
+    const highGlucose = glucose >= 250;
+
+    let correctionInsulin = 0;
+    let correctionBlocked = false;
+    let hoursSinceLast = null;
+
+    if (glucose > settings.correctionThreshold){
+      correctionInsulin = (glucose - settings.correctionTarget) / settings.correctionFactor;
+      const lastMs = lastInjectionBefore(atMs);
+      if (lastMs !== null){
+        hoursSinceLast = (atMs - lastMs) / 3600000;
+        if (hoursSinceLast < settings.minIntervalHours){
+          correctionBlocked = true;
+          correctionInsulin = 0;
+        }
+      }
+    }
+
+    const rawTotal = mealInsulin + correctionInsulin;
+    const total = Math.ceil(rawTotal - 1e-9);
+
+    return {
+      status:"ok",
+      mealUnits, mealInsulin, correctionInsulin, correctionBlocked,
+      hoursSinceLast, rawTotal, total, highGlucose
+    };
+  }
+
+  document.getElementById("simulate").addEventListener("click", ()=>{
+    const totalCarbs = currentMealItems.reduce((s,it)=>s+it.carbs,0);
+    const glucose = parseFloat(document.getElementById("glucose").value);
+    const measured = document.getElementById("measured").value;
+    const box = document.getElementById("result");
+
+    if (isNaN(glucose) || !measured){
+      box.innerHTML = '<div class="result blocked">יש להזין רמת סוכר ושעת מדידה.</div>';
+      return;
+    }
+
+    const atMs = new Date(measured).getTime();
+    const calc = calcDose(totalCarbs, glucose, atMs);
+    lastCalc = {totalCarbs, glucose, measured, calc};
+
+    if (calc.status === "hypo"){
+      box.innerHTML = '<div class="result hold"><strong>סוכר מתחת ל־70 מ״ג/ד״ל.</strong><br>האפליקציה אינה מציגה הצעת מינון בטווח הזה. יש לטפל בהיפוגליקמיה לפי הנהלים הרגילים שלך, ולפנות לעזרה במידת הצורך.</div>';
+      return;
+    }
+    let html = '<div class="result ' + (calc.correctionBlocked ? "blocked" : "ok") + '">';
+    if (calc.highGlucose){
+      html += '<p style="margin:0 0 10px;"><strong>סוכר 250 מ״ג/ד״ל ומעלה.</strong> החישוב מוצג לפי אותה נוסחה, אך בערכים כה גבוהים מומלץ לבדוק קטונים לפי ההנחיות שקיבלת וליצור קשר עם הצוות המטפל.</p>';
+    }
+    html += '<dl>';
+    html += `<dt>מנת פחמימה (${settings.carbUnitGrams} ג׳)</dt><dd>${fmt(calc.mealUnits,2)}</dd>`;
+    html += `<dt>אינסולין לארוחה</dt><dd>${fmt(calc.mealInsulin,2)} יח׳</dd>`;
+    if (calc.correctionBlocked){
+      html += `<dt>תיקון</dt><dd>לא נכלל</dd>`;
+    } else if (calc.correctionInsulin > 0){
+      html += `<dt>תיקון (סוכר מעל ${settings.correctionThreshold})</dt><dd>${fmt(calc.correctionInsulin,2)} יח׳</dd>`;
+    } else {
+      html += `<dt>תיקון</dt><dd>לא נדרש</dd>`;
+    }
+    html += '</dl>';
+    if (calc.correctionBlocked){
+      html += `<p style="margin:10px 0 0;">עברו ${fmt(calc.hoursSinceLast,1)} שעות מההזרקה האחרונה שתועדה ביומן, פחות מ־${settings.minIntervalHours} השעות הנדרשות בין תיקונים. לכן חושב רק חלק הארוחה, ללא חלק תיקון.</p>`;
+    }
+    html += `<div class="grand">סה״כ להדמיה: ${calc.total} יח׳</div>`;
+    html += '<p class="muted" style="margin-top:6px;">מעוגל למעלה ליחידה שלמה, פעם אחת, בסכום הסופי. זו הדמיה בלבד לפי הערכים שהזנת — אינה המלצה רפואית ואינה מחליפה שיקול דעת עצמי או התייעצות עם הצוות המטפל.</p>';
+    html += '</div>';
+    box.innerHTML = html;
+  });
+
+  document.getElementById("save-meal").addEventListener("click", async ()=>{
+    if (currentMealItems.length === 0){ toast("אין פריטים לשמירה"); return; }
+    const totalCarbs = currentMealItems.reduce((s,it)=>s+it.carbs,0);
+    const entry = {
+      id: "m"+Date.now(),
+      type: "meal",
+      items: currentMealItems.slice(),
+      totalCarbs,
+      glucose: document.getElementById("glucose").value || null,
+      measuredAt: document.getElementById("measured").value || null,
+      calc: lastCalc ? lastCalc.calc : null,
+      savedAt: new Date().toISOString()
+    };
+    meals.push(entry);
+    await storeSet("meals", meals);
+    renderJournal();
+    toast("הארוחה נשמרה ביומן");
+  });
+
+  // ---------- INJECTIONS / JOURNAL ----------
+  document.getElementById("injection-form").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    const units = parseFloat(document.getElementById("units").value);
+    const injectedAt = document.getElementById("injected-at").value;
+    if (isNaN(units) || units <= 0 || !injectedAt) return;
+    injections.push({id:"i"+Date.now(), units, injectedAt, savedAt: new Date().toISOString()});
+    await storeSet("injections", injections);
+    e.target.reset();
+    document.getElementById("injected-at").value = nowLocalInputValue();
+    renderJournal();
+    toast("ההזרקה תועדה ביומן");
+  });
+
+  function renderJournal(){
+    const list = document.getElementById("journal-list");
+    const entries = [];
+    meals.forEach(m=>entries.push({time:m.measuredAt || m.savedAt, kind:"meal", data:m}));
+    injections.forEach(i=>entries.push({time:i.injectedAt, kind:"injection", data:i}));
+    entries.sort((a,b)=> new Date(b.time) - new Date(a.time));
+
+    if (entries.length === 0){
+      list.innerHTML = '<p class="muted">אין עדיין רשומות ביומן.</p>';
+      return;
+    }
+    list.innerHTML = "";
+    entries.forEach(en=>{
+      const div = document.createElement("div");
+      div.className = "journal-entry";
+      const when = en.time ? new Date(en.time).toLocaleString("he-IL") : "—";
+      if (en.kind === "meal"){
+        const totalTxt = en.data.calc && en.data.calc.status === "ok" ? `הדמיה: ${en.data.calc.total} יח׳` : "ללא הדמיה שמורה";
+        div.innerHTML = `<span class="tag meal">ארוחה</span><span class="when">${when}</span><br>${fmt(en.data.totalCarbs)} ג׳ פחמ׳ · ${totalTxt}`;
+      } else {
+        div.innerHTML = `<span class="tag injection">הזרקה</span><span class="when">${when}</span><br>${fmt(en.data.units,1)} יחידות שהוזרקו בפועל`;
+      }
+      list.appendChild(div);
+    });
+  }
+
+  // ---------- SETTINGS ----------
+  function renderSettings(){
+    const list = document.getElementById("settings-list");
+    const rows = [
+      ["אינסולין", settings.insulinName],
+      ["ריכוז העט", settings.penConcentration],
+      ["מנת פחמימה", settings.carbUnitGrams + " גרם"],
+      ["יחס לארוחה", settings.mealRatio + " יח׳ למנת פחמימה"],
+      ["מקדם תיקון", "יח׳ לכל " + settings.correctionFactor + " מ״ג/ד״ל"],
+      ["סף תיקון", "מעל " + settings.correctionThreshold + " מ״ג/ד״ל"],
+      ["יעד תיקון", settings.correctionTarget + " מ״ג/ד״ל"],
+      ["המתנה בין תיקונים", settings.minIntervalHours + " שעות"],
+      ["חיישן", settings.sensor],
+      ["עיגול בהדמיה", "למעלה, פעם אחת, בסכום הסופי"]
+    ];
+    list.innerHTML = rows.map(([k,v])=>`<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(String(v))}</dd></div>`).join("");
+
+    document.getElementById("s-insulin").value = settings.insulinName;
+    document.getElementById("s-pen").value = settings.penConcentration;
+    document.getElementById("s-carbunit").value = settings.carbUnitGrams;
+    document.getElementById("s-mealratio").value = settings.mealRatio;
+    document.getElementById("s-corrfactor").value = settings.correctionFactor;
+    document.getElementById("s-corrthresh").value = settings.correctionThreshold;
+    document.getElementById("s-target").value = settings.correctionTarget;
+    document.getElementById("s-interval").value = settings.minIntervalHours;
+  }
+
+  document.getElementById("settings-form").addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    settings = {
+      ...settings,
+      insulinName: document.getElementById("s-insulin").value.trim() || settings.insulinName,
+      penConcentration: document.getElementById("s-pen").value.trim() || settings.penConcentration,
+      carbUnitGrams: parseFloat(document.getElementById("s-carbunit").value) || settings.carbUnitGrams,
+      mealRatio: parseFloat(document.getElementById("s-mealratio").value) || settings.mealRatio,
+      correctionFactor: parseFloat(document.getElementById("s-corrfactor").value) || settings.correctionFactor,
+      correctionThreshold: parseFloat(document.getElementById("s-corrthresh").value) || settings.correctionThreshold,
+      correctionTarget: parseFloat(document.getElementById("s-target").value) || settings.correctionTarget,
+      minIntervalHours: parseFloat(document.getElementById("s-interval").value) || settings.minIntervalHours
+    };
+    await storeSet("settings", settings);
+    renderSettings();
+    renderMealItems();
+    toast("ההגדרות נשמרו");
+  });
+
+  // ---------- INIT ----------
+  async function init(){
+    settings = await storeGet("settings", DEFAULT_SETTINGS);
+    foods = await storeGet("foods", STARTER_FOODS);
+    meals = await storeGet("meals", []);
+    injections = await storeGet("injections", []);
+
+    if (foods.length === 0) foods = STARTER_FOODS;
+
+    document.getElementById("measured").value = nowLocalInputValue();
+    document.getElementById("injected-at").value = nowLocalInputValue();
+
+    renderFoodSelect();
+    populateCategorySelect();
+    renderFoodList();
+    renderMealItems();
+    renderJournal();
+    renderSettings();
+  }
+
+  init();
+
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("sw.js").catch(()=>{});
+    });
+  }
+})();
+</script>
+</body>
+</html>
